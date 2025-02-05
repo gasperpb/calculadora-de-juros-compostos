@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Juros Compostos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+        }
+        .chart-container {
+            margin-top: 20px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Calculadora de Juros Compostos</h2>
+        <div class="input-group">
+            <label for="principal">Valor Inicial (R$):</label>
+            <input type="number" id="principal">
+        </div>
+        <div class="input-group">
+            <label for="aporte">Aporte Mensal (R$):</label>
+            <input type="number" id="aporte">
+        </div>
+        <div class="input-group">
+            <label for="taxa">Taxa de Juros Mensal (%):</label>
+            <input type="number" id="taxa">
+        </div>
+        <div class="input-group">
+            <label for="periodo">Período de Investimento (meses):</label>
+            <input type="number" id="periodo">
+        </div>
+        <button class="button" onclick="calcular()">Calcular</button>
+        <div class="result" id="resultado"></div>
+        <div class="chart-container">
+            <canvas id="chart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        function calcularJurosCompostos(principal, aporte, taxa, periodo) {
+            let valores = [];
+            let totalAportado = 0;
+            let rendimentoTotal = 0;
+            let ultimoRendimento = 0;
+
+            for (let i = 0; i < periodo; i++) {
+                let juros = principal * (taxa / 100);
+                principal = principal + juros + aporte;
+                totalAportado += aporte;
+                rendimentoTotal += juros;
+                ultimoRendimento = juros;
+                valores.push(principal);
+            }
+
+            return {
+                valorFinal: principal.toFixed(2),
+                totalAportado: totalAportado.toFixed(2),
+                rendimentoTotal: rendimentoTotal.toFixed(2),
+                ultimoRendimento: ultimoRendimento.toFixed(2),
+                valores: valores
+            };
+        }
+
+        function calcular() {
+            let principal = parseFloat(document.getElementById('principal').value);
+            let aporte = parseFloat(document.getElementById('aporte').value);
+            let taxa = parseFloat(document.getElementById('taxa').value);
+            let periodo = parseInt(document.getElementById('periodo').value);
+
+            let resultado = calcularJurosCompostos(principal, aporte, taxa, periodo);
+
+            document.getElementById('resultado').innerHTML = `
+                <p>Valor final após ${periodo} meses: R$ ${resultado.valorFinal}</p>
+                <p>Total aportado: R$ ${resultado.totalAportado}</p>
+                <p>Total de rendimento: R$ ${resultado.rendimentoTotal}</p>
+                <p>Último rendimento: R$ ${resultado.ultimoRendimento}</p>
+            `;
+
+            let ctx = document.getElementById('chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({ length: periodo }, (_, i) => i + 1),
+                    datasets: [
+                        {
+                            label: 'Valor Total',
+                            data: resultado.valores,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            fill: false
+                        },
+                        {
+                            label: 'Total Aportado',
+                            data: Array.from({ length: periodo }, (_, i) => (i + 1) * aporte + parseFloat(document.getElementById('principal').value)),
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            fill: false
+                        },
+                        {
+                            label: 'Rendimento',
+                            data: resultado.valores.map((valor, index) => valor - (document.getElementById('principal').value + (index + 1) * aporte)),
+                            borderColor: 'rgba(255, 206, 86, 1)',
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Projeção de Juros Compostos'
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
