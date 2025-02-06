@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Juros Compostos</title>
+    <title>Calculadora de Juros Compostos by Achillesdev </title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -56,7 +56,7 @@
 </head>
 <body>
     <div class="container">
-        <h2>Calculadora de Juros Compostos</h2>
+        <h2>Calculadora de Juros Compostos by Achillesdev</h2>
         <div class="input-group">
             <label for="principal">Valor Inicial (R$):</label>
             <input type="number" id="principal">
@@ -82,27 +82,22 @@
 
     <script>
         function calcularJurosCompostos(principal, aporte, taxa, periodo) {
-            let valores = [];
-            let totalAportado = 0;
-            let rendimentoTotal = 0;
-            let ultimoRendimento = 0;
+            let valoresTotais = [];
+            let valoresAportados = [];
+            let valoresJuros = [];
+            let totalAportado = principal;
+            let totalGeral = principal;
 
             for (let i = 0; i < periodo; i++) {
-                let juros = principal * (taxa / 100);
-                principal = principal + juros + aporte;
+                let juros = totalGeral * (taxa / 100);
+                totalGeral += juros + aporte;
                 totalAportado += aporte;
-                rendimentoTotal += juros;
-                ultimoRendimento = juros;
-                valores.push(principal);
+                valoresTotais.push(totalGeral);
+                valoresAportados.push(totalAportado);
+                valoresJuros.push(totalGeral - totalAportado);
             }
 
-            return {
-                valorFinal: principal.toFixed(2),
-                totalAportado: totalAportado.toFixed(2),
-                rendimentoTotal: rendimentoTotal.toFixed(2),
-                ultimoRendimento: ultimoRendimento.toFixed(2),
-                valores: valores
-            };
+            return { valoresTotais, valoresAportados, valoresJuros };
         }
 
         function calcular() {
@@ -113,13 +108,6 @@
 
             let resultado = calcularJurosCompostos(principal, aporte, taxa, periodo);
 
-            document.getElementById('resultado').innerHTML = `
-                <p>Valor final após ${periodo} meses: R$ ${resultado.valorFinal}</p>
-                <p>Total aportado: R$ ${resultado.totalAportado}</p>
-                <p>Total de rendimento: R$ ${resultado.rendimentoTotal}</p>
-                <p>Último rendimento: R$ ${resultado.ultimoRendimento}</p>
-            `;
-
             let ctx = document.getElementById('chart').getContext('2d');
             new Chart(ctx, {
                 type: 'line',
@@ -127,22 +115,22 @@
                     labels: Array.from({ length: periodo }, (_, i) => i + 1),
                     datasets: [
                         {
-                            label: 'Valor Total',
-                            data: resultado.valores,
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            fill: false
+                            label: 'Total em Juros',
+                            data: resultado.valoresJuros,
+                            borderColor: 'rgba(139, 0, 0, 1)',
+                            backgroundColor: 'rgba(139, 0, 0, 0.2)',
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            fill: true
                         },
                         {
-                            label: 'Total Aportado',
-                            data: Array.from({ length: periodo }, (_, i) => (i + 1) * aporte + parseFloat(document.getElementById('principal').value)),
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            fill: false
-                        },
-                        {
-                            label: 'Rendimento',
-                            data: resultado.valores.map((valor, index) => valor - (document.getElementById('principal').value + (index + 1) * aporte)),
-                            borderColor: 'rgba(255, 206, 86, 1)',
-                            fill: false
+                            label: 'Valor Investido',
+                            data: resultado.valoresAportados,
+                            borderColor: 'rgba(0, 0, 0, 1)',
+                            backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            fill: true
                         }
                     ]
                 },
@@ -155,6 +143,11 @@
                         title: {
                             display: true,
                             text: 'Projeção de Juros Compostos'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
                         }
                     }
                 }
